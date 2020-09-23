@@ -1,0 +1,647 @@
+INDICE.
+
+1.0 METODOS DE LOS Controladores.
+    1.1 Llamado del metodo desde las rutas.
+    1.2 LLamar el método Route::resource
+    1.3 Metodo Only
+    1.4 Metodo Except
+    1.5 Metodos del los Controladores Api
+    1.6 Cambiar el idiomas de los metodos de los Controladores
+    1.7 composer unload (incompleto)
+
+2.0 FORMULARIO.
+    2.1 ACCESO A LA INFORMACION DEL FORMULARIO POST DENTRO DE SU CONTROLADOR.
+    2.2 ACCESO A TRAVEZ DE LA FUNCION request
+    2.3 ACCESO A CAMPO ESPESIFICO METODO get
+    2.4 VALIDACION DE FORMULARIOS
+    2.5 PARA MOSTRAR SOLO EL ERRORS
+    2.6 ERRORES DEBAJO DE LOS CAMPOS
+    2.7 EVITAR PERDER TODO LOS DATOS POR UN ERRORS
+    2.8 TRADUCIR MENSAJES DE ERRORES
+    2.9 Custom Mensajes de validacion
+    2.1.1 TRADUCCION ESTATICA .JSON
+    2.1.2 TRADUCCION COMPLETA DESDE RUTAS
+
+3.0 ENVIO DE EMAIL.
+    3.1 Configuraciones para envio de email
+    3.2 Cambiar el contenido de From:
+    3.3 Agregar asunto al email
+    3.4 Guardar lo ingresado en el formulario
+    3.5 Prueba de visualizacion de email Metodo return
+    3.6 Metodo Mailtrap
+    3.7 Envio de Email Reales
+
+4.0 CONEXION A LA BASE DE DATOS.
+    4.1 Configuracion de la base de datos
+    4.2 Creacion de la base de datos mysql
+    4.3 Migraciones "Control de version para la db"
+    4.4 Ejecutar migraciones
+    4.5 Modificar tablas y hacer fresh (solo desarrollo)-Metodo destructivo
+    4.6 Migraciones extras (modificacion)-Metodo no destructivo
+
+
+1.0    Metodos del los Controladores Rosouce
+para crear " php artisan make:controller NombreDelControlador -r "
+Para listar los metodos Resourse "php artisan r:l"
+
+1. Index
+2. Create
+3. Store
+4. Show
+5. Edit
+6. Update
+7. Delete/Destroy
+
+1.Método index , lo utilizamos para listar recursos.
+
+2.Método para crear recursos en este caso serian proyectos.
+
+3.Método store se utiliza para guardar los recursos en la base de datos, que fue enviado por el metodo create.
+
+4.Método show listamos un recurso espisifico encontrado por su ID.
+
+5.Método edit sirve para mostrar un formulario , en este caso seria un formulario para modificar un proyecto ya creado.
+
+6.Método update , para guardar la modificacion realizada.
+
+7.Método Delete , elimina recursos creados anteriormente.
+
+*****************************
+
+    1.1 Llamado del metodo desde las rutas.
+
+Se colococa como segundo parametro de la ruta ( @Index ) mas arroba acompañado del nombre del metodo
+
+Route::get('/portafolio','PortafolioRController@index')->name ('portafolio');
+
+**********************************
+
+   1.2 LLamar el método Route::resource
+
+Crea todas las rutas resource con sus respectivos métodos.
+
+Route::resource('proyectos','PortafolioRController');
+
+como primer parametro es el recurso (en este caso proyectos)
+como segundo parametro el controlador.
+
+******** 1.3 Metodo Only
+
+Route::resource('proyectos','PortafolioRController')->only(['index','show']);
+
+solo reconocera los metodos espesificados -> index , Show
+
+********1.4 Metodo Except
+
+Route::resource('proyectos','PortafolioRController')->except(['index','show']);
+
+Reconocera todos los metodos menos los espesificados -> index , Show
+
+
+
+====================================================================================================
+
+  1.5 Metodos del los Controladores Api
+para crear " php artisan make:controller NombreDelControlador --api "
+Para listar los metodos Resourse "php artisan r:l"
+
+1. Index
+2. Store
+3. Show
+4. Update
+5. Delete/Destroy
+
+Excluye los metodos Create , Edit los cuales muestran las vistas de los formularios y en una Api no hacen falta.
+
+
+Route::apiresource('proyectos','ApiController');
+
+
+*****************1.6 Cambiar el idiomas de los metodos de los Controladores
+
+App/providers/AppServiceProvider
+
+
+=============================================================================================
+
+
+composer unload
+
+==============================================================
+==============================================================
+==============================================================
+    2.0 FORMULARIOS
+Por defecto los formularios se envian con el metodo get,
+cuando elmetodo sea , Post, se debera crear la ruta espesifica con dicho metodo
+en la raiz de las rutas, con su respectivo controlador y metodoController
+
+"Route::post('/contact','MessagesController@store');"
+
+y colocar en action dicha ruta
+
+"<form method="POST" action="{{route('contact')}}">"
+
+Todo formulario en Laraven debe poseer un token , para evitar ataques de suplantacion d identidad
+y ataques xxs.
+
+Se agrega una directiva al formulario
+
+" @csrf "
+
+Agrega un campo oculto con un token del usuario, el cual Laravel verificara.
+
+<form method="POST" action="{{route('contact')}}">
+
+    @csrf
+************2.1 ACCESO A LA INFORMACION DEL FORMULARIO POST DENTRO DE SU CONTROLADOR.
+
+              public function store(Request $request)
+                {
+                    return $request->get('name');
+                }
+
+Dentro del controlador utilizar la clase Request, como paramtro del la funcion Store
+
+        public function store(Request $request)
+        Request : Clase que trae la info del formulario.
+
+ $request : variable asgnada a esos valores.Nos devolvera un JSON
+ con los datos del formulario.
+
+        {
+            _token	"Qnaq2jTMwUjZ8j2FBXgyMdp3Ds30ikFJgikHBs3A"
+            name	"victor"
+            email	"ortiz.victor.w@gmail.com"
+            subject	"nada"
+            content	"Mensaje nuevo"
+
+        }
+
+        2.2 ACCESO A TRAVEZ DE LA FUNCION request
+se pasa el name del campo de interes como parametro a la funcion request()
+
+         public function store()
+            {
+                return request('email');
+
+            }
+
+
+************2.3 ACCESO A CAMPO ESPESIFICO METODO get
+
+ return $request->get('name'); //victor
+
+
+
+ ============================================================
+
+
+    2.4 VALIDACION DE FORMULARIOS
+    Laravel.com/docs/validation
+
+
+Se utiliza el metodo 'validate()', dentro del mismo se pasan
+en formato de array las Reglas de validacion a travez de name del campo.
+
+si todo valida, llega al return .
+
+ request()->validate([
+           /* Reglas de validacion */
+            'name' => 'required',
+            'email' => 'required|email'==>> o su variante ['required', 'email']
+       ]);
+
+       return 'Datos Validados';
+
+Para agregar otras reglas solo se coloca una barra vertical segido de la nueva reglas
+
+
+Dicho metodo tambien nos devuelve los errores por los cuales fallo la validacion
+En Laravel, tenemos acceso a la variable ERRORS, en todas las vistas.
+{{$errors}} Array de objetos con los errores
+
+************2.5 PARA MOSTRAR SOLO EL ERRORS
+
+        @if ($errors->any())
+
+                @foreach ($errors->all() as $error)
+
+                    <p>{{$error}}</p>
+
+                @endforeach
+
+            @endif
+
+*************2.6 ERRORES DEBAJO DE LOS CAMPOS
+Se utiliza el metodo first(), para seleccionar el primer valo r de un array
+en este caso solo del campo name, como segudo paramtro pasaremos una estructura html
+para darle formato a los errores, sin olvidar !! los signo de admiracion
+necesarios para que blade, reconosca como codigo seguro a el html inyectado.
+:messages Laravel lo remplazara por lo errores.
+
+<input type="text" name="name" id="" placeholder="Nombre..."><br>
+
+{!!$errors->first('name' , '<small>:message</small><br>')!!}
+
+
+
+************2.7 EVITAR PERDER TODO LOS DATOS POR UN ERRORS
+Cuando no colocamos una informacion correcta en el campo , este se recarga
+poerdiendo todo los datos, para evitar ese resultado molesto, se coloca
+el metodo old() dentro del value del formulario mas el name del campo.
+
+        <input type="text" name="name" id="" placeholder="Nombre..." value="{{old('name')}}"><br>
+        {!!$errors->first('name' , '<small>:message</small><br>')!!}
+
+
+******************2.8 TRADUCIR MENSAJES DE ERRORES
+Dentro de resource/lang/en/validation
+
+aqui se encuentran todos los mensajes de errores y advertencias
+para traducirlo lo recomendable es crear una carpeta español y agregarla al lang
+para que laravel reconosca esta nuevatraduccion debemos ir a
+config/app.php
+dentro buscamos 'locale' => 'en'
+y lo cambiamos al idioma necesario
+
+
+
+******************2.9 Custom Mensajes de validacion
+Se agrega como segundo parametro de validate el campo.Reglade Validacion y
+se le asigna un mensaje.
+Esto solo aplicara a este formulario
+
+public function store(Request $request)
+    {
+       request()->validate([
+           /* Reglas de validacion */
+            'name' => 'required',
+            'email' => 'required|email',
+            'subject' => 'required',
+            'content' => 'required|min:3',
+       ],[
+           'name.required'=> 'Necesito tu nombre por favor'
+       ]);
+
+       return 'Datos Validados';
+    }
+
+********************* 2.1.1 TRADUCCION ESTATICA .JSON
+Podemos truducir contenido desde una funcion que busca las traduciones
+ en un archivo JSONcon el mismo nomn¿bre que el locals
+en este caso 'es.json'
+
+Resourse/lang/es.json
+
+{{__('contact')}} ==>> contacto
+@lang('contact) ==>> contacto
+
+es.json
+
+{
+    "contact" : "Contacto"
+}
+
+
+********************* 2.1.2 TRADUCCION COMPLETA DESDE RUTAS
+Si llamamos el metodo setLocale('es'), y le pasamos el idioma
+podemos lograr el mismo resultado si tocar el app.php
+
+App::setLocale('es')
+
+https://github.com/Laravel-Lang/lang
+
+
+
+==============================================================
+===============================================================
+=============================================================
+
+
+        3.0 ENVIO DE EMAIL
+
+Dentro del controlador del formulario, no dirigimos al metodo store,
+luego de la validacion , importamos el metodo Mail
+
+ public function store(Request $request)
+    {
+       request()->validate([
+           /* Reglas de validacion */
+            'name' => 'required',
+            'email' => 'required|email',
+            'subject' => 'required',
+            'content' => 'required|min:3',
+       ],[
+           'name.required'=> 'necesito tu nobre por favor'
+       ]);
+
+       //Envio de email y contenido
+
+       Mail::to('ortiz.victor.w@gmail.com')->send(new MailableClass);
+
+       return 'Mensaje enviado';
+    }
+
+    Ante hay que crear un Mailable , Clase de php que representa cada tipo de email
+    enviado por nuestra aplicacio, para crearlo abrimos una terminal
+
+    php artisan make:mail NombreDelMailable
+    Ahora dentro de
+    Laravel ahora tenemos Laravel/Mail
+
+    Dentro de esta clase esta el metodo build()
+    aca determinamos que mostrar al enviar un email
+    por defecto muestra una vista , una ves creada la vista dentro de
+    resource/view/email
+    es aqui donde contruiremos el contenido del email enviado
+
+    Ahora nos dirigimos al send del controlador y colocamos el nombre del Maliable
+    No olvidemos importar el Maliable
+
+    use App\Mail\MailableClass;
+    Mail::to('ortiz.victor.w@gmail.com')->send(new MailableClass);
+
+**************3.1 Configuraciones para envio de email
+Nos diregimos config/mail
+
+Para Desarrollo podemos probar el formaulario enviando un log en ves del email
+entramos a config/mail , nos dice que podemos hacer con el email , pero para cambiarlo a modo
+
+log, entramos a .env
+buscamos MAIL_MAILER=smtp
+y remplazamos el mismo
+MAIL_MAILER=log
+
+ahora los mensajes se almacenaran en
+storage/logs
+
+        [2020-09-22 12:46:35] local.DEBUG: Message-ID: <66743cdf6433b72597dd0f11208312f6@blog-and-tweets.test>
+        Date: Tue, 22 Sep 2020 12:46:35 +0000
+        Subject: Mensaje Usuario
+        From:
+        To: ortiz.victor.w@gmail.com
+        MIME-Version: 1.0
+        Content-Type: text/html; charset=utf-8
+        Content-Transfer-Encoding: quoted-printable
+
+        contenido del email
+
+**************3.2 Cambiar el contenido de From:
+
+Esta informacion se encuentra dentro de el archivo .env con el nombre 'MAIL_FROM_ADDRESS=ortiz.victor.w@gmail.com',
+tambien se encuentra 'MAIL_FROM_NAME="${APP_NAME}"' que le da al email un nombre de ususario.
+
+        [2020-09-23 10:11:44] local.DEBUG: Message-ID: <0b5e9658159c60081696cda4a5d098cd@blog-and-tweets.test>
+        Date: Wed, 23 Sep 2020 10:11:43 +0000
+        Subject: Mensaje Usuario
+    From: Victor Ortiz <ortiz.victor.w@gmail.com>
+        To: ortiz.victor.w@gmail.com
+        MIME-Version: 1.0
+        Content-Type: text/html; charset=utf-8
+        Content-Transfer-Encoding: quoted-printable
+
+
+****************3.3 Agregar asunto al email
+
+Abrimos el archivo Maliable ('Mail/MailableClass') y agregamos la una propiedad publica , y le asignamos el asunto.
+
+        [2020-09-23 10:20:12] local.DEBUG: Message-ID: <d58e6fa7e63e0404e6614561a28ca52b@blog-and-tweets.test>
+        Date: Wed, 23 Sep 2020 10:20:12 +0000
+    Subject: Mensaje recibido
+        From: Victor Ortiz <ortiz.victor.w@gmail.com>
+        To: ortiz.victor.w@gmail.com
+        MIME-Version: 1.0
+        Content-Type: text/html; charset=utf-8
+        Content-Transfer-Encoding: quoted-
+
+
+********************3.4 Guardar lo ingresado en el formulario
+
+Dentro del controlador guardamos en una variable, lo ingresado por el usuario,
+
+    $message = request()->validate([.....
+
+para que estos datos puedan ser compartidos en la vista del email,
+(recordemos que creamos una vista que sera el contenido del email)
+Se la pasamos al Maliable a travez del constructor.
+
+    Mail::to('ortiz.victor.w@gmail.com')->send(new mensajeUsuario($message));
+
+Ahora estara disponible para el constructor del Mailable Mail/MailableClass, metodo constructor
+
+    public function __construct($message)
+
+    {
+        //
+    }
+
+Ahora creamos la propiedad publica $message y le asignamos esta variable traida desde el controlador
+dentro del constructor
+
+      public $msg;
+
+    /**
+     * Create a new message instance.
+     *
+     * @return void
+     */
+    public function __construct($msg)
+
+    {
+        $this->msg = $msg;
+    }
+
+
+**********************3.5 Prueba de visualizacion de email Metodo return
+
+Solo se retorna ina nueva instancia de la clase maliable  para visalizar en el navegador.
+
+     $message = request()->validate([
+           /* Reglas de validacion */
+            'name' => 'required',
+            'email' => 'required|email',
+            'subject' => 'required',
+            'content' => 'required|min:3',
+       ],[
+           'name.required'=> 'necesito tu nobre por favor'
+       ]);
+
+
+       return new MailableClass($message);
+       return 'Mensaje enviado';
+    }
+********************3.6 Metodo Mailtrap
+
+dentro de.env , cambiamos el driver por "smtp" , hacemos una cuenta en mailtrap.com
+
+dentro de la inbox encontraremos
+    MAIL_USERNAME=5981aa0726a341
+    MAIL_PASSWORD=06f3c9a787cc2c
+
+lo reemplazamos dentro de .env y listo , ahora llegaran nuestra pruebas a Mailtrap
+
+
+******************3.7 Envio de Email Reales
+
+Utilizaremoos SendGrid un driver para laravel , lo instalamos de composer.
+
+    composer require s-ichikawa/laravel-sendgrid-driver
+
+luego colocamos las variables de entorno
+
+    MAIL_DRIVER=sendgrid
+    SENDGRID_API_KEY='YOUR_SENDGRID_API_KEY' => crear una cuenta para obtenerla
+
+Dentro del panel de sendgrid vamos a setting/apiKeys , tocamos en crear una nueva apiKey
+
+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
+
+Por ultimo copiar estas lineas en config/services.php
+
+    'sendgrid' => [
+        'api_key' => env('SENDGRID_API_KEY'),
+    ],
+
+
+========================================================
+=========================================================
+=======================================================
+
+4.0 CONEXION A LA BASE DE DATOS.
+
+**************4.1 Configuracion de la base de datos
+
+Dentro de config/databases aqui encontraras los soportes de Laravel.
+Luego podras configurar .env segun la db a utilizar , por defecto Laravel utiliza Myql
+
+
+*************4.2 Creacion de la base de datos mysql
+
+desde phpMyadmin o desde terminal
+
+terminal:
+
+Acseder a mysql
+    mysql -u root -p
+Crear db
+    create database NombreDB;
+
+*************4.3 Migraciones "Control de version para la db"
+
+database/migrations
+
+Sirven para modificar y mantener el esquema de nuestras db de una manera mas sencilla.
+
+Metodos de La migracion
+
+*UP  = Agrega colunmas, tablas o index a la db
+*DOWN = Revierte la acciones del metodo "UP"
+
+
+Dentro de UP encontramos los datos de dicha tabla y sus campos
+
+    public function up()
+    {
+        Schema::create('users', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('email')->unique();
+            $table->timestamp('email_verified_at')->nullable();
+            $table->string('password');
+            $table->rememberToken();
+            $table->timestamps();
+        });
+    }
+
+***************4.4 Ejecutar migraciones
+Dentro de la terminal no situamos sobre el proyecto
+Aqui se ejecutaran los metodos Up de las migraciones y se crearan las tablas de la db
+
+    php artisan migrate
+
+Para ejecutar el metodo down y eliminar todas las tablas ejecutaremos este comando
+
+    php artisan migrate:rollback
+
+rollback puede ir paso a paso eleiminando migraciones con el comando "--step=Nmero de pasos a eliminar de atras para adelante dentro del lote"
+
+migracion 1
+migracion 2
+migracion 3
+
+
+    php artisan migrate:rollback --step=1
+
+migracion 1
+migracion 2
+
+*****************4.5 Modificar tablas y hacer fresh (solo desarrollo)-Metodo destructivo
+
+Al realizar un cambio dentro de las migraciones debemos ejecutar un comando para que dicho cambios impacten dentro de la db
+
+    php artisan migrate:fresh
+
+****************4.6 Migraciones extras (modificacion)-Metodo no destructivo
+
+Crearemos nuevas migraciones para agregar campos ala migracion actual
+
+        php artisan make:migration alter_user_table o add_phone_user_table => debe quedar claro que realiza dicha  migracion
+
+    importante es darle referencia a Laravel , para que sepa que migracion modificaremos
+
+        php artisan make:migration  add_phone_to_user_table_=> creara una funcion apuntando a dicha tabla. "to","from","in"
+
+            public function up()
+            {
+                Schema::table('user_table_', function (Blueprint $table) {
+                    //
+                });
+            }
+
+            /**
+            * Reverse the migrations.
+            *
+            * @return void
+            */
+            public function down()
+            {
+                Schema::table('user_table_', function (Blueprint $table) {
+                    //
+                });
+            }
+        }
+
+
+        Opcion en español
+        crear tabla
+        php artisan make:migration  add_phone_to_user_table --create=nuevatabla
+        editar tabla
+        php artisan make:migration  add_phone_to_user_table --table=users
+
+Agregamos las columnas y ejecutamos
+
+    php artisan migrate
+
+        public function up()
+            {
+                Schema::table('user_table_', function (Blueprint $table) {
+                    $table->string('phone')->nullable();
+                });
+            }
+
+            /**
+            * Reverse the migrations.
+            *
+            * @return void
+            */
+            public function down()
+            {
+                Schema::table('user_table_', function (Blueprint $table) {
+                    $table->dropColumn('phone');
+                });
+            }
+}
+
+podes espesificar ubicacion del campo con el metodo after
+
+    $table->string('phone')->after('email')->nullable();

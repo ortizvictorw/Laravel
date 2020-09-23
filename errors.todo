@@ -1,0 +1,24 @@
+FORMULARIOS.
+
+"The POST method is not supported for this route. Supported methods: GET, HEAD. "
+
+El método POST no es compatible con esta ruta. Métodos admitidos: GET, HEAD.
+
+El metodo no es el correcto.
+
+**********
+
+ATAQUES XXS
+
+Todo formulario en Laraven debe poseer un token , para evitar ataques de suplantacion d identidad
+y ataques xxs.
+
+Se agrega una directiva al formulario
+
+" @csrf "
+
+Agrega un campo oculto con un token del usuario, el cual Laravel verificara.
+
+***********
+
+
