@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\mensajeUsuario;
 
-class MessagesController extends Controller
+class MessageController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -43,7 +43,7 @@ class MessagesController extends Controller
             'subject' => 'required',
             'content' => 'required|min:3',
        ],[
-           'name.required'=> 'necesito tu nobre por favor'
+           'name.required'=> 'necesito tu nombre por favor'
        ]);
 
        //Envio de email y contenido
@@ -54,7 +54,7 @@ class MessagesController extends Controller
        Mail::to('ortiz.victor.w@gmail.com')->queue(new mensajeUsuario($message));
 
 
-       return 'Mensaje enviado';
+       return back()->with('status', 'Recibimos tu mensaje, te responderemos en 24 horas.');
     }
 
     /**

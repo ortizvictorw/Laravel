@@ -7,26 +7,67 @@
 
 {{-- determina dinamicamente el contenido de la seccion --}}
 @section('content')
+<div class="container">
+    <div class="row">
+        <div class="col-12 col-sm-10 col-lg-6 mx-auto">
 
-<h1>Contact</h1>
-
-
-<form method="POST" action="{{route('contact')}}">
+    @include('partials.session-status')
+    <form class="bg-white shadow rounded py-3 px-4"
+    method="POST" action="{{route('messeges.store')}}">
 
     @csrf
-<input type="text" name="name" id="" placeholder="Nombre..." value="{{old('name')}}"><br>
-        {!!$errors->first('name' , '<small>:message</small><br>')!!}
+    <h1 class="display-4">Contacto</h1><hr>
+        <div class="form-group">
+            <label for="name">Nombre</label>
+            <input class="form-control bg-light shadow-sm  @error('email') is-invalid @else border-0  @enderror"
+            type="text" name="name" id="name" placeholder="Nombre..." value="{{old('name')}}">
+            @error('name')
+                <span class="invalid-feedback" role="alert">
+                <strong>{{$message}}</strong>
+                </span>
+        @enderror
+        </div>
 
-        <input type="email" name="email" id="" placeholder="Correo..."value="{{old('email')}}"><br>
-        {!!$errors->first('email' , '<small>:message</small><br>')!!}
+        <div class="form-group">
+            <label for="email">Correo electónico</label>
+            <input class="form-control bg-light shadow-sm  @error('email') is-invalid @else border-0  @enderror"
+            type="email" name="email" id="email" placeholder="Correo..."value="{{old('email')}}">
+            @error('email')
+                <span class="invalid-feedback" role="alert">
+                <strong>{{$message}}</strong>
+                </span>
+            @enderror
 
-        <input type="text" name="subject" id="" placeholder="Asunto..."value="{{old('subject')}}"><br>
-        {!!$errors->first('subject' , '<small>:message</small><br>')!!}
+        </div>
 
-        <textarea  name="content" id=""value="{{old('content')}}" >Mensaje...</textarea><br>
-        {!!$errors->first('content' , '<small>:message</small><br>')!!}
+        <div class="form-group">
+            <label for="subject">Asunto</label>
+            <input class="form-control bg-light shadow-sm @error('subject') is-invalid @else border-0  @enderror"
+            type="text" name="subject" id="subject" placeholder="Asunto..."value="{{old('subject')}}">
+            @error('subject')
+                <span class="invalid-feedback" role="alert">
+                <strong>{{$message}}</strong>
+                </span>
+            @enderror
 
-        <button type="submit">Enviar</button>
+        </div>
+        <div class="form-group">
+            <label for="content">Contenido</label>
+            <textarea class="form-control bg-light shadow-sm  @error('content') is-invalid @else border-0  @enderror"
+            name="content" id="content"value="{{old('content')}}"placeholder="Mensaje..." ></textarea>
+            @error('content')
+                <span class="invalid-feedback" role="alert">
+                <strong>{{$message}}</strong>
+                </span>
+            @enderror
+        </div>
+        <button class="btm btn-primary btn-lg btn-block" type="submit">Enviar</button>
     </form>
+        </div>
+    </div>
 
+
+
+
+</div>
 @endsection

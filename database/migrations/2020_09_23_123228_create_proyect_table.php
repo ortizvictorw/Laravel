@@ -13,9 +13,10 @@ class CreateProyectTable extends Migration
      */
     public function up()
     {
-        Schema::create('proyect', function (Blueprint $table) {
+        Schema::create('projects', function (Blueprint $table) {
             $table->id();
             $table->string('title');
+            $table->string('url');
             $table->text('description');
             $table->timestamps();
         });
@@ -28,6 +29,6 @@ class CreateProyectTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('proyect');
+        Schema::dropIfExists('project');
     }
 }

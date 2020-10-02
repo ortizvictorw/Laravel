@@ -39,6 +39,38 @@ INDICE.
     4.5 Modificar tablas y hacer fresh (solo desarrollo)-Metodo destructivo
     4.6 Migraciones extras (modificacion)-Metodo no destructivo
 
+5.0 AGREGAR DATOS DESDE BASE DE DATOS
+
+6.0 ORM ELOQUENT
+    6.1 Modelos de Tablas con eloquent
+    6.2 LLAmado en controladores
+    6.3 Ordenar proyecto de forma desendente
+    6.4 Paginacion
+    6.5 Consulta dotos espesificados
+    6.6 404 Error Personalizado
+    6.7 Activar link
+
+7.0 FORMULARIO CREACION DE PROYECTOS
+    7.1 View create
+    7.2 Almacenar en Base de datos el request
+    7.3 Agregacion Masiva
+
+8.0 EXTARER VALIDACIO A CLASE DEDICADA
+    8.1 Errores opcion 2
+    8.3 Form request Validation Mensajes de error
+
+9.0 ACTUALIZAR REGIDTROS DE LA DB
+
+10.0 DELETE
+    10.1 mensaje flash session
+
+11.0 LOGIN
+    11.1 Directivas 'guest' , 'auth'
+    11.2 Desabilitar vistas condicionalmente
+    11.3 Desabilitar rutas
+
+
+
 
 1.0    Metodos del los Controladores Rosouce
 para crear " php artisan make:controller NombreDelControlador -r "
@@ -645,3 +677,634 @@ Agregamos las columnas y ejecutamos
 podes espesificar ubicacion del campo con el metodo after
 
     $table->string('phone')->after('email')->nullable();
+
+
+========================================================
+========================================================
+5.0 AGREGAR DATOS DESDE BASE DE DATOS
+
+
+*******************5.1 Constructor de Consultas
+
+Dentro de controlador importamos DB
+
+    use Illuminate\Support\Facades\DB;
+
+asignamos DB a una variable
+
+     $portafolio = DB
+
+utilizamos table para asignar la tabla a consultar
+
+    $portafolio = DB :: table('')
+
+Utilizamos el metodo get para la consultar
+
+    $portafolio = DB::table('proyect')->get();
+
+
+-------------HTML
+
+La informacion de la db , se asigna como una propiedas del objeto proyecto
+     <ul>
+            @forelse ($portafolio as $proyecto)
+                    <li>{{ $proyecto->title }}</li>
+                @empty
+                    <li>Aun no hay Proyectos</li>
+            @endforelse
+        </ul>
+
+
+===================================================
+===================================================
+
+6.0 ORM ELOQUENT
+
+***************6.1 Modelos de Tablas con eloquent
+
+Creacion de modelos con eloquent desde la terminal
+
+    conMigracion
+    php artisan make:model MyMdelo -m
+
+convencion para nombrar modelos
+
+    Project-> Mayuscula y singular y CamelCase
+
+Crearar el modelo en  App/MyMdelo
+
+Elocuent Tomara ese nombre Project y lo convertira en mayuscula y plural -> Proyects
+
+o podras definirla manualmente
+
+    class Proyect extends Model
+        {
+            protected $table = 'my_table';
+
+        }
+
+***********6.2 LLAmado en controladores
+
+importamos el modelo y lo usamos .
+
+    use App/Proyect
+
+     public function index()
+    {
+
+            $portafolio = Proyect::get();
+            return view ('portafolio', compact('portafolio'));
+
+    }
+
+***************6.3 Ordenar proyecto de forma desendente
+
+
+    $portafolio = Proyect::orderBy('create_at','DESC')->get();
+
+otra opcion seria
+
+    $portafolio = Proyect::latest()->get();
+
+dentro de los parentesis ira el campo por el cual se ordenara, por defecto 'create_at'
+
+
+****************6.4 Paginacion
+
+Por defecto la paginacion sera de 15
+
+    $portafolio = Proyect::latest()->paginate();
+
+dentro del parentesis pondremos la cantidad de registros por pagina
+
+Para acceder a los lonk de paginacion debemos agregar el metodo link debajo de donde se muestra la tabla
+
+---------------HTML
+
+        <ul>
+            @forelse ($portafolio as $proyecto)
+                    <li>{{ $proyecto->title }}<br>{{ $proyecto->description }}</li>
+                @empty
+                    <li>Aun no hay Proyectos</li>
+            @endforelse
+            {{ $portafolio->links() }}
+        </ul>
+
+
+
+**********************6.5 Consulta dotos espesificados
+
+
+Asignaremos un link a cada titulodel proyecto.
+
+--------HTML https://www.youtube.com/watch?v=CRz9BV8zMK4&list=PLpKWS6gp0jd_uZiWmjuqLY7LAMaD8UJhc&index=24
+Le asignamos una ruta con route , y le pasamos como parametro , el nombre de la ruta
+y tambien un identificador en este caso $proyect (internamente realiza una consulta $proyect->getRouteKey()=>1)
+
+    <li><a href="{{ route('portafolio.show', $project) }}">{{ $project->title }}</a></li>
+
+Luego dentro del controlador , espesificamente dentro del metodo show, utilizamos el metodo find , para buscar
+por id el recurso espesifico , est hara una consulta al modelo espesificado y devolvera un json con toda la informacion
+luego compartimos esa variable con la vista a renderizar.
+
+    public function show ($id)
+    {
+        $project = Project::find($id);
+
+        return view('projects.show', [
+            'project' => $project
+        ])->render();
+    }
+
+Una ves en la Vista Creamos una estructura para una mejor visalizacion y agregamos dentro del metodo find-> findOrFail
+para que al tratar de acceder a una vista que no existe falle.
+
+      public function show ($id)
+    {
+        $project = Project::findOrFail($id);
+
+        return view('projects.show', [
+            'project' => $project
+        ])->render();
+    }
+
+---------HTML
+
+        {{-- Llama a Layout --}}
+        @extends('layout')
+
+        {{-- determina dinamicamente el titulo de la pagina --}}
+        @section('title','Portafolio | '. $project->title)
+
+
+        @section('content')
+            <h1>{{ $project->title }}</h1>
+            <p>{{ $project->description }}</p>
+            <p>{{ $project->created_at->diffForHumans() }}</p>
+        @endsection
+
+
+*************6.6 404 Error Personalizado
+
+Crearemos un archivo con el nombre 404.blade.php dentro de la carpeta view
+aqui adentro personalizaremos dicha pagina.
+
+*************6.7 Activar link
+Colocar el nombre de la vista en vez de un ruta manualmente, dentro de href
+
+<li class="{{ setActive('home') }}"><a href="{{route ('home')}}">{{__('Home')}}</a></li>
+
+======================================
+=====================================
+
+7.0 FORMULARIO CREACION DE PROYECTOS
+
+**********7.1 View create
+
+Creamos la vista create dentro de la carpeta View
+
+Creamos el formaulario con el metodo POST apuntando a la ruta que luesgo entrara en el controlador por el
+metodo store, por el momento retornaa solo la request del formulario.
+
+
+----Controladore
+
+  public function store()
+    {
+
+
+        return request();
+    }
+
+------rutas
+        Route::post('/portafolio','ProjectController@store')->name('projects.store');
+------HTML
+
+        {{-- Llama a Layout --}}
+        @extends('layout')
+
+        {{-- determina dinamicamente el titulo de la pagina --}}
+        @section('title','Crear Proyecto | Victor Ortiz')
+
+        {{-- determina dinamicamente el contenido de la seccion --}}
+        @section('content')
+
+            <h1>Crear Proyecto Nuevo</h1>
+        <form action="" method="post" action="{{ route('projects.store') }}">
+
+           @csrf  ------------NUNCA OLVIDARSE SINO DIRA PAGINA ESPIRADA POR FALTA DE TOKEN
+                    {{-- Titulo --}}
+                    <label for="title">Titulo del Proyecto <br>
+                        <input type="text" name="title" id="">
+                    </label><br>
+                    {{-- URL del Proyecto --}}
+                    <label for="url">URL del Proyecto <br>
+                        <input type="text" name="url" id="">
+                    </label><br>
+                    {{-- Descripcion --}}
+                    <label for="description">Descripcion del Proyecto <br>
+                        <textarea type="text" name="description" id=""></textarea>
+                    </label><br>
+
+                    <button type="submit">Guardar</button>
+
+                </form>
+        @endsection
+
+
+************7.2 Almacenar en Base de datos el request
+
+Dentro del Metodo Store, existe el request , que devolvera todo lo enviado por el formulario,
+asignamos a una variable cada informacio y le enviamos a la base de datos con el metodo "create" del modelo donde insertaremos
+dicha informacion
+
+
+         public function store()
+    {
+        $title = request('title');
+        $url = request('url');
+        $description = request('descripcion');
+
+        Project::create([
+            'title'=> $title,
+            'url'=> $url,
+            'description'=> $description
+
+        ]);
+    }
+
+********** 7.3 Agregacion Masiva
+
+Metopdo de Valicion de filas antes de la insercion a la db
+
+        public function store()
+            {
+                $fields = request()->validate([
+                    'title'=>'required',
+                    'url'=>'required',
+                    'description'=>'required',
+                ]);
+
+                Project::create($fields);//[tile,url,description,token]
+
+                return redirect()->route('projects.index');
+            }
+
+        }
+
+
+---------------Model
+
+        <?php
+
+        namespace App;
+
+        use Illuminate\Database\Eloquent\Model;
+
+        class Project extends Model
+        {
+            //Las validaciones se realizan en el controlador
+            protected $guarded = [];
+
+
+        }
+
+
+
+====================================================
+===================================================
+
+8.0 EXTARER VALIDACIO A CLASE DEDICADA
+
+************8.1 Errores opcion 2
+Muestra errores en una sola vista
+
+        @if ($errors->any())
+    <ul>
+        @foreach ($errors->all() as $error)
+            <li>
+                {{$error}}
+            </li>
+        @endforeach
+    </ul>
+@endif
+
+
+*************8.2 Form request Validation
+
+Pensadas para validar formularios mas complejos
+So clases dedicadas para encapsular la logica de validacion y autorizacion
+
+CREAR U FORM Request
+
+    php artisan make:request NombreDelRequest
+
+    app/Http/request
+
+
+Cada request cuenta de dos metodos
+
+*authorize()
+Para determinar si el usuario que realiza la peticion esta autorizado para hacerlo
+
+
+
+*rules()
+Mudamos las reglas del controlador hacia esta clase
+        public function rules()
+            {
+                return [
+                    'title'=>'required',
+                    'url'=>'required',
+                    'description'=>'required',
+                ];
+            }
+
+-----controlador
+pasamos el request del metodo como parametro y luego lo validamos
+
+        public function store(CreateProyectRequest $request)
+            {
+
+                Project::create($request->validated());//[tile,url,description,token]
+
+                return redirect()->route('projects.index');
+            }
+
+***************8.3 Form request Validation Mensajes de error
+Pasamos como metodo la function messages
+
+    public function rules()
+    {
+        return [
+            'title'=>'required',
+            'url'=>'required',
+            'description'=>'required',
+        ];
+    }
+
+    public function messages()
+    {
+        return [
+            'title.required'=> 'El proyecto necesita un titulo'
+        ];
+    }
+}
+
+=================================================================
+==================================================================
+
+9.0 ACTUALIZAR REGIDTROS DE LA DB https://www.youtube.com/watch?v=AOueyEYBVgM&list=PLpKWS6gp0jd_uZiWmjuqLY7LAMaD8UJhc&index=28
+
+-------------rutas
+
+        Route::get('/portafolio/{id}/editar','ProjectController@edit')->name('projects.edit'); vista
+        Route::patch('/portafolio/{project}','ProjectController@update')->name('projects.update'); ENVIO
+-----------controllers
+
+Proyect trae todos los datos dentro de $project
+SaveProyectRequest trae toda las validaciones dentro de $request
+
+ public function update(Project $project, SaveProyectRequest $request)
+    {
+        /* SaveProyectRequest trae en su request las reglas de validacion */
+         $project->update($request->validated());
+
+         return redirect()->route('projects.show', $project)->with('status','El Proyecto fue Actualizado con exito');
+    }
+
+=================================================================
+==================================================================
+10.0 DELETE
+
+
+-----------ruta
+
+        Route::delete('/portafolio/{project}','ProjectController@destroy')->name ('projects.destroy');
+
+--------controllers
+
+        public function destroy(Project $project)
+            {
+
+                $project->delete();
+
+                return redirect()->route('projects.index')->with('status','El Proyecto fue Eliminado con exito');
+
+            }
+
+            ->with('status','El Proyecto fue Eliminado con exito'); son mensajes en session para cuando se realizandiversas
+            operaciones en este caso delete, se accede desde la vista a travez:
+
+----------------HTML
+
+*********** 10.1 mensaje flash session
+
+            @if ((session('status')))
+            {{ session ('status') }}
+
+            @endif
+
+
+
+=================================================================
+==================================================================
+
+11.0 LOGIN
+
+****************11.1 Crear estructura
+composer require laravel/ui
+php artisan ui vue--auth
+
+npm install & npm run dev
+
+ESTRUCTURA RUTAS
+
+Auth::routes(); => En esta linea registra las siguiente rutas
+
+LoginController -> App/Http/Controllers/Auth
+-----------------------------------------------------------
+   GET      /login      => Para mostrar el formulario de login
+   POST     /login      => Donde se envia el formulario de login
+   POST     /logout     => Para cerrar sesion
+
+
+RegisterController -> App/Http/Controllers/Auth
+------------------------------------------------------------
+   GET      /register   => Para mostrar formulario de registro
+   POST     /register   => Donde se enviara el formulario de registro
+
+Genera vistas
+
+auth/
+    login.blade.php
+    register.blade.php
+    ...
+layout/
+    app.blade.php
+
+Rutas Protegidas solo logueados
+
+Vista : resource/view/home.blade.php
+Controlador: app/http/controllers/HomeController.php
+Ruta: /home
+
+
+****************11.1 Directivas 'guest' , 'auth'
+
+Sirven para visualizar o no segun si esta o no logueado.
+
+guest
+
+        {{-- Con esta directiva solo se mostrara cuando no esta logueado --}}
+            @guest
+            <li><a href="{{route ('login')}}">Login</a></li>
+            @endguest
+
+auth
+
+            @auth
+            {{ auth()->user()->name}}
+            @endauth
+
+************11.2 Desabilitar vistas condicionalmente
+
+ @guest
+       <li><a href="{{route ('login')}}">Login</a></li>
+
+       @else
+
+       JS que ejecuta el formulario logout
+
+           <li><a href="#"onclick="event.preventDefault();
+            document.getElementById('logout-form').submit();">Cerrar Secion</a></li>
+
+       @endguest
+
+   </ul>
+</nav>
+
+Formulario POST para LOGAOUT
+            <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+                @csrf
+            </form>
+
+*********************11.3 Desabilitar rutas
+
+Auth::routes(['register'=>false]);
+
+
+===========================================
+===========================================
+
+12.0 PROTEGER RUTAS CON MIDDLEWARES
+
+******************12.1
+Filtran las peticion http
+
+Por Rutas -Proyege todo el controlador y sus metodos
+
+Route::get('/portafolio','ProjectController@index')
+->name ('projects.index');
+->middleware ('auth');
+
+
+Por controlador con el metodo constructor, esta opcion es mas
+flexible y te protege tanto todos como solamnete un metedo
+
+
+    /* Metodo Constructor */
+
+    public function __construct()
+    {
+        $this->middleware('auth')->only('create');
+    }
+
+Cuando solo queremos dejar accesible algunas rutas es mejor el metodo except
+
+/* Metodo Constructor */
+
+    public function __construct()
+    {
+        $this->middleware('auth')->except('index','show');
+    }
+
+
+===============================================
+===============================================
+
+13.0 Estilos a la Aplicacion
+
+***********13.1 Linkear css y js
+
+Dentro del archivo  layout
+
+ <link rel="stylesheet" href="/css/app.css">
+<script src="/js/app.js" defer></script>
+
+
+*************13.2 LARAVEL MIX
+
+Proporciona una API fluida para definir los pasos de compilacion de Wepack de
+nuestra aplicacion Laravel utilizando varios prcesadores de CSS y Javascript.
+
+hay que configurarlo dentr de webpack.mix.js
+
+mix.js('resources/js/app.js', 'public/js')
+    .sass('resources/sass/app.scss', 'public/css');
+
+aca podemos seleccioanr el tipo de pre-procesadores de css Less , Stylus, sass
+
+
+**************13.3 instalacion de las dependencias front end
+
+npm instal
+yarn
+
+*************13.4 Compilar los archivos
+
+npm run dev
+yarn dev
+
+*************13.5 Run watch
+
+Es como nodemon en node, permite reflejar cambios sin necesidad de recargar el servidor.
+
+npm run watch
+yarn watch
+
+*************browser sync
+
+Dentro de webpack
+ mix.browserSync('http://blog-and-tweets.test')
+npm run watch
+
+===============================================
+===============================================
+
+14.0    MINIFICAR PROYECTO
+
+npm run prod
+yarn prod
+
+
+************Obligar al navegador a obtener la ultima version
+
+---------------------layout
+
+<link rel="stylesheet" href="{{mix('css/app.css')}}">
+<script src="{{mix('js/app.js')}}" defer></script>
+
+-----------------webpack
+si esta en producion le agrega un identificador a los archivos para mantenerlos siempre diferente
+y forzar un reloader.
+
+ if (mix.inProduction())
+    {
+        mix.version();
+    }
+
+
+********************PARA EJECUTAR EL PROYECTO
+
+yarn watch
